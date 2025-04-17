@@ -1,7 +1,8 @@
 using ChatApi.Services.DataBase;
+using ChatApi.Services.RegisterServices;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
+using Microsoft.EntityFrameworkCore.Internal;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddLogging();
+builder.Services.AddScoped<IRegistrServices, RegistrServices>();
+builder.Services.AddSingleton<JwtService>();
 
 var connectingStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
