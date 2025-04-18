@@ -1,5 +1,8 @@
+using ChatApi.Services.ConvertingData;
 using ChatApi.Services.DataBase;
-using ChatApi.Services.RegisterServices;
+using ChatApi.Services.FileManagment;
+using ChatApi.Services.RegisterServices.Interface;
+using ChatApi.Services.RegisterServices.Realization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 
@@ -11,7 +14,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddLogging();
 builder.Services.AddScoped<IRegistrServices, RegistrServices>();
+builder.Services.AddScoped<IFileManagement, FileManagement>();
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddTransient<Argon2PasswordHasher>();
+builder.Services.AddTransient<IConvertingImage, ConvertingImage>();
+builder.Services.AddTransient<IGenerateCode, GeneratorCode>();
+
 
 var connectingStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
