@@ -1,4 +1,5 @@
 ﻿using Castle.Core.Logging;
+using ChatApi.DTO.Options;
 using ChatApi.DTO.Results;
 using ChatApi.DTO.UserDTO;
 using ChatApi.Services.ConvertingData;
@@ -23,6 +24,7 @@ namespace TestApi
         private readonly IConvertingImage _convertingImage;
         private readonly IFileManagement _fileManagement;
         private readonly IGenerateCode _generateCode;
+        private readonly AvatarOptions _avatarOptions;
         public TestRegister()
         {
             _moqLogger = new Mock<ILogger<IRegistrServices>>();
@@ -42,27 +44,38 @@ namespace TestApi
             _convertingImage = new ConvertingImage();
             _fileManagement = new FileManagement();
             _generateCode = new GeneratorCode();
+            var baseDir = AppContext.BaseDirectory;
+            var projectRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", ".."));
+            var filePath = Path.Combine(projectRoot, "ChatApi", "wwwroot", "assets", "notImage.png");
+            var avatarOptions = new AvatarOptions
+            {
 
+                DefaultAvatarRelativePath = filePath
+            };
 
             _registrServices = new RegistrServices( _moqLogger.Object, _appDBContext,
-                _jwtService, _argon2PasswordHasher,_convertingImage,_fileManagement,_generateCode);
+                _jwtService, _argon2PasswordHasher,_convertingImage,_fileManagement,_generateCode,avatarOptions);
         }
 
         [Fact]
-        public async Task TestRegisterationIsSuccessAsync()
+        public async Task TestRegistrationIsSuccessAsync()
         {
-            var resultReg = new ResultsRegister()
+            // Arrange
+            var expected = new ResultsRegister
             {
                 message = "User registered",
                 _isSuccess = true,
                 token = string.Empty
             };
-            var user = RegistrationFish();
+            var userReg = RegistrationFish();
 
-            var result = await _registrServices.RegistrationAsync(user);
+            var actual = await _registrServices.RegistrationAsync(userReg);
 
-            Assert.Equal(result, resultReg);
+            Assert.Equal(expected.message, actual.message);
+            Assert.True(actual._isSuccess);
+            Assert.Equal(expected.token, actual.token);
         }
+
         [Fact]
         public async Task TestRegisterationNotIsSuccessAsync()
         {
@@ -72,7 +85,7 @@ namespace TestApi
                 _isSuccess = false,
                 token = string.Empty
             };
-            var user = RegistrationFish();
+            UserRegistration user = null!;
 
             var result = await _registrServices.RegistrationAsync(user);
 
@@ -90,9 +103,11 @@ namespace TestApi
             };
             var user = RegistrationFish();
 
+            await _registrServices.RegistrationAsync(user);
             var result = await _registrServices.RegistrationAsync(user);
 
             Assert.Equal(result, resultReg);
+            
         }
 
         private UserRegistration RegistrationFish()

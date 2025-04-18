@@ -1,4 +1,5 @@
-﻿using ChatApi.DTO.Results;
+﻿using ChatApi.DTO.Options;
+using ChatApi.DTO.Results;
 using ChatApi.DTO.UserDTO;
 using ChatApi.Services.ConvertingData;
 using ChatApi.Services.DataBase;
@@ -17,10 +18,11 @@ namespace ChatApi.Services.RegisterServices.Realization
         private readonly IConvertingImage _convertingImage;
         private readonly IFileManagement _fileManagement;
         private readonly IGenerateCode _generateCode;
+        private readonly AvatarOptions _avatarOptions;
         public RegistrServices(ILogger<IRegistrServices> logger, AppDBContext context, 
-            JwtService jwtService, Argon2PasswordHasher argon2PasswordHasher, 
+            JwtService jwtService, Argon2PasswordHasher argon2PasswordHasher,
             IConvertingImage convertingImage, IFileManagement fileManagement,
-            IGenerateCode generateCode)
+            IGenerateCode generateCode, AvatarOptions avatarOptions)
         {
             _logger = logger;
             _context = context;
@@ -29,12 +31,14 @@ namespace ChatApi.Services.RegisterServices.Realization
             _convertingImage = convertingImage;
             _fileManagement = fileManagement;
             _generateCode = generateCode;
+            _avatarOptions = avatarOptions;
         }
         public async Task<ResultsRegister> RegistrationAsync(UserRegistration userRegistration)
         {
             try
             {
                 var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == userRegistration.Email);
+
 
                 if (user is not null)
                 {
@@ -49,6 +53,7 @@ namespace ChatApi.Services.RegisterServices.Realization
 
                 var newUser = CreateUserData(userRegistration, hashedPassword, imageBase64);
                 await _context.Users.AddAsync(newUser);
+                await _context.SaveChangesAsync();
                 return CreateResponse("User registered", true, string.Empty);
             }
             catch (Exception ex)
@@ -85,7 +90,7 @@ namespace ChatApi.Services.RegisterServices.Realization
             if (isBase64)
                 return imageBase64;
 
-            var img = await _fileManagement.ReadFileAsync(@"wwwroot/assets/notImage.png");
+            var img = await _fileManagement.ReadFileAsync(_avatarOptions.DefaultAvatarRelativePath);
             return await _convertingImage.ConvertImageToBase64(img);
         }
 
