@@ -81,7 +81,7 @@ namespace ChatApi.Services.RegisterServices.Realization
 
         private async Task<string> ImageAvatarBase64Async(string imageBase64)
         {
-            bool isBase64 = await _convertingImage.isCheckBase64(imageBase64);
+            bool isBase64 = await _convertingImage.IsCheckBase64(imageBase64);
             if (isBase64)
                 return imageBase64;
 
