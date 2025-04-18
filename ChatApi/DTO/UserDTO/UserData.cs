@@ -5,7 +5,7 @@
         public int Id { get; init; }
         public string Name { get; init; } = string.Empty;
         public string Email { get; init; } = string.Empty;
-        public string password { get; init; } = string.Empty;
+        public string Password { get; init; } = string.Empty;
         public string Role { get; init; } = string.Empty;
         public bool IsVerified { get; init; } = false;
         public string VerificationCode { get; init; } = string.Empty;
