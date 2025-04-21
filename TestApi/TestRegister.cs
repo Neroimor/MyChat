@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Linq;
 
 namespace TestApi
 {
@@ -53,8 +54,8 @@ namespace TestApi
                 DefaultAvatarRelativePath = filePath
             };
 
-            _registrServices = new RegistrServices( _moqLogger.Object, _appDBContext,
-                _jwtService, _argon2PasswordHasher,_convertingImage,_fileManagement,_generateCode,avatarOptions);
+            _registrServices = new RegistrServices(_moqLogger.Object, _appDBContext,
+                _jwtService, _argon2PasswordHasher, _convertingImage, _fileManagement, _generateCode, avatarOptions);
         }
 
         [Fact]
@@ -107,7 +108,79 @@ namespace TestApi
             var result = await _registrServices.RegistrationAsync(user);
 
             Assert.Equal(result, resultReg);
-            
+
+        }
+
+        [Fact]
+        public async Task TestLoginIsSuccessAsync()
+        {
+            var user = RegistrationFish();
+            await RegisterUserAsync(user);
+            var expected = new ResultsRegister
+            {
+                message = "User logged in",
+                _isSuccess = true,
+                token = string.Empty
+            };
+            var login = LoginFish();
+            var result = await _registrServices.LoginAsync(login);
+            Assert.Equal(expected.message, result.message);
+            Assert.True(result._isSuccess);
+            Assert.NotEmpty(result.token);
+        }
+
+        [Fact]
+        public async Task TestLoginNotIsSuccessAsync()
+        {
+
+            var expected = new ResultsRegister
+            {
+                message = "User not found",
+                _isSuccess = false,
+                token = string.Empty
+            };
+            var login = LoginFish();
+            var user = await _appDBContext.Users.Where(x => x.Email == login.Email).FirstOrDefaultAsync();
+            if (user is not null)
+            {
+                _appDBContext.Remove(user);
+                await _appDBContext.SaveChangesAsync();
+            }
+
+
+            var result = await _registrServices.LoginAsync(login);
+            Assert.Equal(expected.message, result.message);
+            Assert.False(result._isSuccess);
+            Assert.Empty(result.token);
+        }
+        [Fact]
+        public async Task TestLoginNotIsSuccessAsync2()
+        {
+            var user = RegistrationFish();
+            await RegisterUserAsync(user);
+            var expected = new ResultsRegister
+            {
+                message = "Invalid password",
+                _isSuccess = false,
+                token = string.Empty
+            };
+            var login = new UserLogin()
+            {
+                Email = "TestEmail@test.test",
+                Password = "WrangPassword",
+
+            };
+            var result = await _registrServices.LoginAsync(login);
+            Assert.Equal(expected.message, result.message);
+            Assert.False(result._isSuccess);
+            Assert.Empty(result.token);
+        }
+
+
+        private async Task RegisterUserAsync(UserRegistration user)
+        {
+            var userReg = RegistrationFish();
+            await _registrServices.RegistrationAsync(userReg);
         }
 
         private UserRegistration RegistrationFish()
@@ -115,6 +188,17 @@ namespace TestApi
             var user = new UserRegistration()
             {
                 Name = "TestName",
+                Email = "TestEmail@test.test",
+                Password = "TestPassword",
+
+            };
+
+            return user;
+        }
+        private UserLogin LoginFish()
+        {
+            var user = new UserLogin()
+            {
                 Email = "TestEmail@test.test",
                 Password = "TestPassword",
 
