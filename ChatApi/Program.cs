@@ -7,20 +7,27 @@ using ChatApi.Services.RegisterServices.Realization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 
+using Microsoft.OpenApi.Models; // Add this using directive
 
+// Ensure the following NuGet package is installed in your project:
+// Swashbuckle.AspNetCoredotnet add package Swashbuckle.AspNetCore
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddLogging();
 builder.Services.Configure<AvatarOptions>(builder.Configuration.GetSection("AvatarOptions"));
+
 builder.Services.AddScoped<IRegistrServices, RegistrServices>();
 builder.Services.AddScoped<IFileManagement, FileManagement>();
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddTransient<Argon2PasswordHasher>();
 builder.Services.AddTransient<IConvertingImage, ConvertingImage>();
 builder.Services.AddTransient<IGenerateCode, GeneratorCode>();
+
 
 
 
@@ -49,7 +56,9 @@ using (var scope = app.Services.CreateScope())
 }
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(); // Вот это запускает интерфейс
+
 }
 
 

@@ -6,6 +6,7 @@ using ChatApi.Services.DataBase;
 using ChatApi.Services.FileManagment;
 using ChatApi.Services.RegisterServices.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ChatApi.Services.RegisterServices.Realization
 {
@@ -22,7 +23,7 @@ namespace ChatApi.Services.RegisterServices.Realization
         public RegistrServices(ILogger<IRegistrServices> logger, AppDBContext context, 
             JwtService jwtService, Argon2PasswordHasher argon2PasswordHasher,
             IConvertingImage convertingImage, IFileManagement fileManagement,
-            IGenerateCode generateCode, AvatarOptions avatarOptions)
+            IGenerateCode generateCode, IOptions<AvatarOptions> avatarOptionsAccessor)
         {
             _logger = logger;
             _context = context;
@@ -31,7 +32,7 @@ namespace ChatApi.Services.RegisterServices.Realization
             _convertingImage = convertingImage;
             _fileManagement = fileManagement;
             _generateCode = generateCode;
-            _avatarOptions = avatarOptions;
+            _avatarOptions = avatarOptionsAccessor.Value;
         }
         public async Task<ResultsRegister> RegistrationAsync(UserRegistration userRegistration)
         {
@@ -82,8 +83,6 @@ namespace ChatApi.Services.RegisterServices.Realization
             };
         }
 
-
-
         private async Task<string> ImageAvatarBase64Async(string imageBase64)
         {
             bool isBase64 = await _convertingImage.IsCheckBase64(imageBase64);
@@ -93,7 +92,6 @@ namespace ChatApi.Services.RegisterServices.Realization
             var img = await _fileManagement.ReadFileAsync(_avatarOptions.DefaultAvatarRelativePath);
             return await _convertingImage.ConvertImageToBase64(img);
         }
-
 
         private ResultsRegister CreateResponse(string message, bool isSuccess, string token)
         {
@@ -105,6 +103,40 @@ namespace ChatApi.Services.RegisterServices.Realization
             };
         }
 
+        private LoginResults CreateResponseLogin(string message, bool isSuccess, string token, bool notFound)
+        {
+            return new LoginResults
+            {
+                message = message,
+                _isSuccess = isSuccess,
+                token = token,
+                notFound = notFound
+            };
+        }
+
+
+        public async Task<LoginResults> LoginAsync(UserLogin userLogin)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == userLogin.Email);
+            if (user is null)
+            {
+                _logger.LogError("User not found");
+                return await Task.FromResult(CreateResponseLogin("User not found", false, string.Empty,true));
+            }
+            return await CheckPasswordAsync(userLogin, user);
+        }
+
+        private async Task<LoginResults> CheckPasswordAsync(UserLogin userLogin, UserData user)
+        {
+            var isPasswordValid = await Task.Run(() => _argon2PasswordHasher.VerifyPassword(user.Password, userLogin.Password));
+            if (!isPasswordValid)
+            {
+                _logger.LogError("Invalid password");
+                return CreateResponseLogin("Invalid password", false, string.Empty, false);
+            }
+            var token = _jwtService.GenerateToken(user);
+            return CreateResponseLogin("User logged in", true, token, false);
+        }
 
 
         private Task<string> HashPasswordArgonAsync(string password)
@@ -112,29 +144,26 @@ namespace ChatApi.Services.RegisterServices.Realization
             return Task.Run(() => _argon2PasswordHasher.HashPassword(password));
         }
 
+
         public Task<ResultsRegister> ForgotPasswordAsync(string email)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResultsRegister> LoginAsync(UserLogin userLogin)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResultsRegister> LogoutAsync(string token)
-        {
+            //todo So far, such functionality has not been implemented.
+            //You need to add the sending of messages to the mail
             throw new NotImplementedException();
         }
 
 
         public Task<ResultsRegister> ResetPasswordAsync(string code, string newPassword)
         {
+            //todo So far, such functionality has not been implemented.
+            //You need to add the sending of messages to the mail
             throw new NotImplementedException();
         }
 
         public Task<ResultsRegister> VerificationEmailAsync(string code)
         {
+            //todo So far, such functionality has not been implemented.
+            //You need to add the sending of messages to the mail
             throw new NotImplementedException();
         }
     }
