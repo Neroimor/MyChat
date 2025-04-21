@@ -10,6 +10,7 @@ using ChatApi.Services.RegisterServices.Realization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Linq;
 
@@ -45,18 +46,22 @@ namespace TestApi
             _convertingImage = new ConvertingImage();
             _fileManagement = new FileManagement();
             _generateCode = new GeneratorCode();
+
             var baseDir = AppContext.BaseDirectory;
             var projectRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", ".."));
             var filePath = Path.Combine(projectRoot, "ChatApi", "wwwroot", "assets", "notImage.png");
             var avatarOptions = new AvatarOptions
             {
-
                 DefaultAvatarRelativePath = filePath
             };
 
+            // Используем Options.Create для создания IOptions<AvatarOptions>
+            var avatarOptionsAccessor = Options.Create(avatarOptions);
+
             _registrServices = new RegistrServices(_moqLogger.Object, _appDBContext,
-                _jwtService, _argon2PasswordHasher, _convertingImage, _fileManagement, _generateCode, avatarOptions);
+                _jwtService, _argon2PasswordHasher, _convertingImage, _fileManagement, _generateCode, avatarOptionsAccessor);
         }
+
 
         [Fact]
         public async Task TestRegistrationIsSuccessAsync()
