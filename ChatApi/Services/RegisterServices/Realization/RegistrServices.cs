@@ -6,6 +6,7 @@ using ChatApi.Services.DataBase;
 using ChatApi.Services.FileManagment;
 using ChatApi.Services.RegisterServices.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ChatApi.Services.RegisterServices.Realization
 {
@@ -22,7 +23,7 @@ namespace ChatApi.Services.RegisterServices.Realization
         public RegistrServices(ILogger<IRegistrServices> logger, AppDBContext context, 
             JwtService jwtService, Argon2PasswordHasher argon2PasswordHasher,
             IConvertingImage convertingImage, IFileManagement fileManagement,
-            IGenerateCode generateCode, AvatarOptions avatarOptions)
+            IGenerateCode generateCode, IOptions<AvatarOptions> avatarOptionsAccessor)
         {
             _logger = logger;
             _context = context;
@@ -31,7 +32,7 @@ namespace ChatApi.Services.RegisterServices.Realization
             _convertingImage = convertingImage;
             _fileManagement = fileManagement;
             _generateCode = generateCode;
-            _avatarOptions = avatarOptions;
+            _avatarOptions = avatarOptionsAccessor.Value;
         }
         public async Task<ResultsRegister> RegistrationAsync(UserRegistration userRegistration)
         {
@@ -126,16 +127,12 @@ namespace ChatApi.Services.RegisterServices.Realization
             return CreateResponse("User logged in", true, token);
         }
 
-        public Task<ResultsRegister> LogoutAsync(string token)
-        {
-            throw new NotImplementedException();
-        }
-
 
         private Task<string> HashPasswordArgonAsync(string password)
         {
             return Task.Run(() => _argon2PasswordHasher.HashPassword(password));
         }
+
 
         public Task<ResultsRegister> ForgotPasswordAsync(string email)
         {
