@@ -121,7 +121,7 @@ namespace TestApi
         {
             var user = RegistrationFish();
             await RegisterUserAsync(user);
-            var expected = new ResultsRegister
+            var expected = new LoginResults
             {
                 message = "User logged in",
                 _isSuccess = true,
@@ -138,7 +138,7 @@ namespace TestApi
         public async Task TestLoginNotIsSuccessAsync()
         {
 
-            var expected = new ResultsRegister
+            var expected = new LoginResults
             {
                 message = "User not found",
                 _isSuccess = false,
@@ -163,7 +163,7 @@ namespace TestApi
         {
             var user = RegistrationFish();
             await RegisterUserAsync(user);
-            var expected = new ResultsRegister
+            var expected = new LoginResults
             {
                 message = "Invalid password",
                 _isSuccess = false,

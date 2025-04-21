@@ -103,28 +103,39 @@ namespace ChatApi.Services.RegisterServices.Realization
             };
         }
 
+        private LoginResults CreateResponseLogin(string message, bool isSuccess, string token, bool notFound)
+        {
+            return new LoginResults
+            {
+                message = message,
+                _isSuccess = isSuccess,
+                token = token,
+                notFound = notFound
+            };
+        }
 
-        public async Task<ResultsRegister> LoginAsync(UserLogin userLogin)
+
+        public async Task<LoginResults> LoginAsync(UserLogin userLogin)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == userLogin.Email);
             if (user is null)
             {
                 _logger.LogError("User not found");
-                return await Task.FromResult(CreateResponse("User not found", false, string.Empty));
+                return await Task.FromResult(CreateResponseLogin("User not found", false, string.Empty,true));
             }
             return await CheckPasswordAsync(userLogin, user);
         }
 
-        private async Task<ResultsRegister> CheckPasswordAsync(UserLogin userLogin, UserData user)
+        private async Task<LoginResults> CheckPasswordAsync(UserLogin userLogin, UserData user)
         {
             var isPasswordValid = await Task.Run(() => _argon2PasswordHasher.VerifyPassword(user.Password, userLogin.Password));
             if (!isPasswordValid)
             {
                 _logger.LogError("Invalid password");
-                return CreateResponse("Invalid password", false, string.Empty);
+                return CreateResponseLogin("Invalid password", false, string.Empty, false);
             }
             var token = _jwtService.GenerateToken(user);
-            return CreateResponse("User logged in", true, token);
+            return CreateResponseLogin("User logged in", true, token, false);
         }
 
 
