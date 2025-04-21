@@ -13,20 +13,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 9.0.x
-    
-    - name: List solution and project files
-      run: find . -name "*.sln" -o -name "*.csproj"
+
     - name: Restore dependencies
-      run: dotnet restore ./TestApi.sln
+      run: dotnet restore ./TestApi/TestApi.csproj
 
     - name: Build
-      run: dotnet build ./TestApi.sln --no-restore
+      run: dotnet build ./TestApi/TestApi.csproj --no-restore
 
     - name: Run tests
-      run: dotnet test ./TestApi.sln --no-build --verbosity normal
+      run: dotnet test ./TestApi/TestApi.csproj --no-build --verbosity normal
