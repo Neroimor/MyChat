@@ -82,8 +82,6 @@ namespace ChatApi.Services.RegisterServices.Realization
             };
         }
 
-
-
         private async Task<string> ImageAvatarBase64Async(string imageBase64)
         {
             bool isBase64 = await _convertingImage.IsCheckBase64(imageBase64);
@@ -93,7 +91,6 @@ namespace ChatApi.Services.RegisterServices.Realization
             var img = await _fileManagement.ReadFileAsync(_avatarOptions.DefaultAvatarRelativePath);
             return await _convertingImage.ConvertImageToBase64(img);
         }
-
 
         private ResultsRegister CreateResponse(string message, bool isSuccess, string token)
         {
@@ -106,20 +103,27 @@ namespace ChatApi.Services.RegisterServices.Realization
         }
 
 
-
-        private Task<string> HashPasswordArgonAsync(string password)
+        public async Task<ResultsRegister> LoginAsync(UserLogin userLogin)
         {
-            return Task.Run(() => _argon2PasswordHasher.HashPassword(password));
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == userLogin.Email);
+            if (user is null)
+            {
+                _logger.LogError("User not found");
+                return await Task.FromResult(CreateResponse("User not found", false, string.Empty));
+            }
+            return await CheckPasswordAsync(userLogin, user);
         }
 
-        public Task<ResultsRegister> ForgotPasswordAsync(string email)
+        private async Task<ResultsRegister> CheckPasswordAsync(UserLogin userLogin, UserData user)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResultsRegister> LoginAsync(UserLogin userLogin)
-        {
-            throw new NotImplementedException();
+            var isPasswordValid = await Task.Run(() => _argon2PasswordHasher.VerifyPassword(user.Password, userLogin.Password));
+            if (!isPasswordValid)
+            {
+                _logger.LogError("Invalid password");
+                return CreateResponse("Invalid password", false, string.Empty);
+            }
+            var token = _jwtService.GenerateToken(user);
+            return CreateResponse("User logged in", true, token);
         }
 
         public Task<ResultsRegister> LogoutAsync(string token)
@@ -128,13 +132,30 @@ namespace ChatApi.Services.RegisterServices.Realization
         }
 
 
+        private Task<string> HashPasswordArgonAsync(string password)
+        {
+            return Task.Run(() => _argon2PasswordHasher.HashPassword(password));
+        }
+
+        public Task<ResultsRegister> ForgotPasswordAsync(string email)
+        {
+            //todo So far, such functionality has not been implemented.
+            //You need to add the sending of messages to the mail
+            throw new NotImplementedException();
+        }
+
+
         public Task<ResultsRegister> ResetPasswordAsync(string code, string newPassword)
         {
+            //todo So far, such functionality has not been implemented.
+            //You need to add the sending of messages to the mail
             throw new NotImplementedException();
         }
 
         public Task<ResultsRegister> VerificationEmailAsync(string code)
         {
+            //todo So far, such functionality has not been implemented.
+            //You need to add the sending of messages to the mail
             throw new NotImplementedException();
         }
     }
