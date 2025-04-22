@@ -7,12 +7,13 @@ using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ChatApi.Controllers.ControllerRegister
 {
+    [ApiController]
     [Route("/api/[controller]")]
     public class RegisterController : ControllerBase
     {
         public readonly IRegistrServices _registrServices;
 
-        public RegisterController(RegistrServices registeredServices)
+        public RegisterController(IRegistrServices registeredServices)
         {
             _registrServices = registeredServices;
         }

@@ -52,7 +52,7 @@
         ResultsRegister? resultsRegister = await response.Content.ReadFromJsonAsync<ResultsRegister>();
         if (resultsRegister is not null)
         {
-            if (response.IsSuccessStatusCode && resultsRegister._isSuccess)
+            if (resultsRegister._isSuccess)
             {
                 ToastService.ShowSuccess("Регистрация прошла успешно!");
             }

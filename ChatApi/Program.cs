@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazorClient", policy =>
+    options.AddPolicy("AllowAllClient", policy =>
     {
         policy.WithOrigins("https://localhost:7191")
               .AllowAnyHeader()
@@ -42,6 +42,8 @@ builder.Services.AddDbContext<AppDBContext>(options =>
 
 
 var app = builder.Build();
+app.UseCors("AllowAllClient");
+app.MapControllers();
 
 var logging = app.Services.GetRequiredService<ILogger<Program>>();
 using (var scope = app.Services.CreateScope())
