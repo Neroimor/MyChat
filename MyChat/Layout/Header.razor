@@ -1,0 +1,20 @@
+﻿@inject NavigationManager NavigationManager
+
+<div>
+    <button @onclick="OnClickToLogin">Войти</button>
+    <button @onclick="OnClickToRegister">Зарегистрироваться</button>
+</div>
+@code {
+
+    private void OnClickToLogin()
+    {
+
+        NavigationManager.NavigateTo("/auth/login");
+    }
+
+    private void OnClickToRegister()
+    {
+
+        NavigationManager.NavigateTo("/auth/register");
+    }
+}

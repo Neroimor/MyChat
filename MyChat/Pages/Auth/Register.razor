@@ -1,0 +1,76 @@
+﻿@page "/auth/register"
+@using System.ComponentModel.DataAnnotations
+@using ChatApi.DTO.Results
+@using ChatApi.DTO.UserDTO
+@inject HttpClient Http
+@inject IToastService ToastService
+
+<div>
+    <EditForm Model="@user" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+
+        <div>
+            <label>Имя</label>
+            <InputText @bind-Value="user.Name" />
+            <ValidationMessage For="@(() => user.Name)" />
+        </div>
+
+        <div>
+            <label>Email</label>
+            <InputText @bind-Value="user.Email" type="email" />
+            <ValidationMessage For="@(() => user.Email)" />
+        </div>
+
+        <div>
+            <label>Пароль</label>
+            <InputText @bind-Value="user.Password" type="password" />
+            <ValidationMessage For="@(() => user.Password)" />
+        </div>
+
+        <div>
+            <label>Повторите пароль</label>
+            <InputText @bind-Value="user.ConfirmPassword" type="password" />
+            <ValidationMessage For="@(() => user.ConfirmPassword)" />
+        </div>
+
+        <button type="submit">Зарегистрироваться</button>
+    </EditForm>
+</div>
+<h3>Регистрация</h3>
+<h3>@errorMessage</h3>
+
+
+
+@code {
+    private UserRegistration user = new();
+    private string errorMessage = string.Empty;
+    //test password dont forgot dan@dan.dan !1qaz2wsx
+    private async Task HandleValidSubmit()
+    {
+        var newUser = CreateUser();
+        var response = await Http.PostAsJsonAsync("https://localhost:7200/api/Register/reg", newUser);
+        ResultsRegister? resultsRegister = await response.Content.ReadFromJsonAsync<ResultsRegister>();
+        if (resultsRegister is not null)
+        {
+            if (resultsRegister._isSuccess)
+            {
+                ToastService.ShowSuccess("Регистрация прошла успешно!");
+            }
+            else if (resultsRegister._isSuccess)
+            {
+                errorMessage = resultsRegister.message;
+            }
+        }
+
+    }
+
+    private UserRegistrationSender CreateUser()
+    {
+        return new UserRegistrationSender
+            {
+                Name = user.Name,
+                Email = user.Email,
+                Password = user.Password,
+            };
+    }
+}
