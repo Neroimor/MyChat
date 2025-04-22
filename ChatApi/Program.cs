@@ -5,12 +5,7 @@ using ChatApi.Services.FileManagment;
 using ChatApi.Services.RegisterServices.Interface;
 using ChatApi.Services.RegisterServices.Realization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 
-using Microsoft.OpenApi.Models; // Add this using directive
-
-// Ensure the following NuGet package is installed in your project:
-// Swashbuckle.AspNetCoredotnet add package Swashbuckle.AspNetCore
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
@@ -57,7 +52,7 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(); // Вот это запускает интерфейс
+    app.UseSwaggerUI();
 
 }
 
