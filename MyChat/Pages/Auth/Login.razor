@@ -1,7 +1,68 @@
 ﻿@page "/auth/login"
+@using ChatApi.DTO.Results
+@using ChatApi.DTO.UserDTO
+@using System.Net.Http.Headers
+@inject IJSRuntime JS
+@inject HttpClient Http
+@inject IToastService ToastService
+@inject NavigationManager NavigationManager
 
-<h3>Login</h3>
+<div>
+    <EditForm Model="@user" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <div>
+            <label>Email</label>
+            <InputText @bind-Value="user.Email" type="email" />
+            <ValidationMessage For="(() => user.Email)" />
+        </div>
+        <div>
+            <label>Пароль</label>
+            <InputText @bind-Value="user.Password" type="password" />
+            <ValidationMessage For="(() => user.Password)" />
+        </div>
+        <button type="submit">Войти</button>
+    </EditForm>
+    <h3>Войти</h3>
+    <h3>@errorMessage</h3>
+</div>
 
 @code {
 
+    private UserLogin user = new();
+    private string errorMessage = string.Empty;
+
+    private async Task HandleValidSubmit()
+    {
+        var user = CreateUser();
+        var response = await Http.PostAsJsonAsync("https://localhost:7200/api/Register/login", user);
+        LoginResults? resultsLogin = await response.Content.ReadFromJsonAsync<LoginResults>();
+
+        if (resultsLogin is not null)
+        {
+            if (resultsLogin._isSuccess)
+            {
+                string jwt = resultsLogin.token;
+                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", jwt);
+                Http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", jwt);
+                NavigationManager.NavigateTo("/homelk");
+            }
+            else if (resultsLogin._isSuccess)
+            {
+                errorMessage = resultsLogin.message;
+                StateHasChanged();
+            }
+        }
+    }
+
+
+
+    private UserLogin CreateUser()
+    {
+        return new UserLogin
+            {
+                Email = user.Email,
+                Password = user.Password
+            };
+    }
 }

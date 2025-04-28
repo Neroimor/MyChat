@@ -1,6 +1,7 @@
 ﻿using ChatApi.DTO.UserDTO;
 using ChatApi.Services.RegisterServices.Interface;
 using ChatApi.Services.RegisterServices.Realization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -45,6 +46,13 @@ namespace ChatApi.Controllers.ControllerRegister
                 return BadRequest(result);
             }
             return Ok(result);
+        }
+
+        [HttpGet("test")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> TestAsync()
+        {
+            return Ok(new { message = "Hello" });
         }
     }
 }

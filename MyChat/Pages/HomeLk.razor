@@ -1,0 +1,20 @@
+﻿@page "/homelk"
+@inject HttpClient Http
+<PageTitle>Home</PageTitle>
+
+<p>@authtext</p>
+
+@code {
+    string authtext = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetFromJsonAsync<TestResponse>("https://localhost:7200/api/Register/test");
+        authtext = response.Message;
+
+    }
+    public class TestResponse
+    {
+        public string Message { get; set; }
+    }
+}
